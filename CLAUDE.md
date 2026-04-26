@@ -1,24 +1,52 @@
-<!-- nx configuration start-->
-<!-- Leave the start & end comments to automatically receive updates. -->
+# CLAUDE.md
 
-# General Guidelines for working with Nx
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-- For navigating/exploring the workspace, invoke the `nx-workspace` skill first - it has patterns for querying projects, targets, and dependencies
-- When running tasks (for example build, lint, test, e2e, etc.), always prefer running the task through `nx` (i.e. `nx run`, `nx run-many`, `nx affected`) instead of using the underlying tooling directly
-- Prefix nx commands with the workspace's package manager (e.g., `pnpm nx build`, `npm exec nx test`) - avoids using globally installed CLI
-- You have access to the Nx MCP server and its tools, use them to help the user
-- For Nx plugin best practices, check `node_modules/@nx/<plugin>/PLUGIN.md`. Not all plugins have this file - proceed without it if unavailable.
-- NEVER guess CLI flags - always check nx_docs or `--help` first when unsure
+## Project Overview
 
-## Scaffolding & Generators
+**SkyBook** — a flight booking app built as an NX monorepo with:
+- `apps/web` — React 19 frontend (Vite, React Router v7, Zustand, TanStack Query, Axios)
+- `apps/api` — NestJS backend (TypeORM, Postgres)
+- `libs/models` — shared TypeScript interfaces/enums imported by both apps as `@flight-booking/models`
 
-- For scaffolding tasks (creating apps, libs, project structure, setup), ALWAYS invoke the `nx-generate` skill FIRST before exploring or calling MCP tools
+## Commands
 
-## When to use nx_docs
+```bash
+# Start everything (Postgres via Docker + API + Web)
+bash start.sh
 
-- USE for: advanced config options, unfamiliar flags, migration guides, plugin configuration, edge cases
-- DON'T USE for: basic generator syntax (`nx g @nx/react:app`), standard commands, things you already know
-- The `nx-generate` skill handles generator discovery internally - don't call nx_docs just to look up generator syntax
+# Run individual apps
+npm run start:api    # NestJS on :3333
+npm run start:web    # React on :5173
 
+# NX targets
+npx nx run web:test          # Vitest (frontend unit tests)
+npx nx run api-e2e:e2e       # Playwright e2e
+npx nx run web:lint
+npx nx run api:lint
+npx nx run web:build
+npx nx run api:build
+```
 
-<!-- nx configuration end-->
+## Infrastructure
+
+Postgres runs in Docker. `start.sh` handles starting the container, waiting for readiness, then launching both servers. DB config via env vars: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` (defaults: `localhost:5432/flight_booking`, user/pass `postgres`). TypeORM `synchronize: true` — schema is auto-managed, no migrations.
+
+The API seeds the database on first boot (`SeedService.onApplicationBootstrap`) only when the flights table is empty.
+
+## Architecture
+
+### Shared models (`libs/models`)
+All domain types (`Flight`, `Booking`, `Passenger`, `CreateBookingDto`, `UpdateBookingDto`, `BookingStatus`, `CabinClass`, `ApiResponse`) live here and are imported by both the API and web with the `@flight-booking/models` path alias. Changes here affect both apps.
+
+### API (`apps/api`)
+- NestJS modules: `FlightsModule`, `BookingsModule`, `SeedModule`
+- Each module follows the pattern: `*.entity.ts` (TypeORM) → `*.service.ts` → `*.controller.ts`
+- All routes are prefixed `/api`
+- CORS allows `http://localhost:5173` (or `CORS_ORIGIN` env var)
+
+### Web (`apps/web`)
+- **State**: Zustand stores (`bookings.store.ts`, `flights.store.ts`) own async operations and call `apps/web/src/lib/api.ts` directly
+- **API client**: single Axios instance in `src/lib/api.ts`, base URL from `VITE_API_URL` env var
+- **Routing**: two pages — `/` (BookingsPage) and `/flights` (FlightsPage)
+- **Styling**: plain CSS in `src/styles.css` (no CSS-in-JS, no Tailwind)

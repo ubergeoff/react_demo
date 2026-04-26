@@ -1,17 +1,12 @@
-import { useEffect } from 'react';
-import { useFlightsStore } from '../store/flights.store';
+import { useFlights } from '../hooks/useFlights';
 
 export function FlightsPage() {
-  const { flights, isLoading, error, fetchFlights } = useFlightsStore();
-
-  useEffect(() => {
-    fetchFlights();
-  }, [fetchFlights]);
+  const { data: flights = [], isPending, error } = useFlights();
 
   const fmt = (iso: string) =>
     new Date(iso).toLocaleString('en-ZA', { dateStyle: 'medium', timeStyle: 'short' });
 
-  if (isLoading && flights.length === 0) {
+  if (isPending) {
     return (
       <div className="loading">
         <div className="spinner" />
@@ -27,7 +22,7 @@ export function FlightsPage() {
         <p className="subtitle">{flights.length} flights</p>
       </div>
 
-      {error && <div className="error-banner">{error}</div>}
+      {error && <div className="error-banner">Failed to load flights</div>}
 
       <div className="table-wrapper">
         <table className="flights-table">

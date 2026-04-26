@@ -2,7 +2,11 @@
   "name": "flight-booking",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "start:web": "nx run web:serve",
+    "start:api": "nx run api:serve",
+    "start": "npm exec nx -- run-many -t serve -p api,web"
+  },
   "private": true,
   "dependencies": {
     "@nestjs/common": "^11.1.19",

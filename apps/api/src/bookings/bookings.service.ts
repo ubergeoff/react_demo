@@ -44,8 +44,9 @@ export class BookingsService {
       seatNumber: dto.seatNumber,
     });
 
-    const saved = await this.bookingRepo.save(booking);
-    return this.toModel(saved);
+    await this.bookingRepo.save(booking);
+    const saved = await this.bookingRepo.findOne({ where: { id: booking.id } });
+    return this.toModel(saved!);
   }
 
   async update(id: string, dto: UpdateBookingDto): Promise<Booking> {
