@@ -1,0 +1,26 @@
+# NX
+.nx/installation
+.nx/cache
+.nx/workspace-data
+.nx/self-healing
+.nx/polygraph
+
+# Node
+node_modules/
+dist/
+
+# Env files
+apps/api/.env
+apps/web/.env
+
+# Build artifacts
+*.js.map
+vite.config.*.timestamp*
+
+# Editor
+.vscode/
+.idea/
+
+# Claude
+.claude/worktrees
+.claude/settings.local.json
