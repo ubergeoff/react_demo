@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { BookingEntity } from './booking.entity';
 import {
   Booking,
@@ -34,6 +34,13 @@ export class BookingsService {
       where: { id: dto.flightId },
     });
     if (!flight) throw new NotFoundException(`Flight ${dto.flightId} not found`);
+
+    const activeBookings = await this.bookingRepo.count({
+      where: { flightId: dto.flightId, status: Not(BookingStatus.CANCELLED) },
+    });
+    if (activeBookings >= flight.availableSeats) {
+      throw new BadRequestException(`Flight ${flight.flightNumber} is fully booked`);
+    }
 
     const booking = this.bookingRepo.create({
       bookingReference: this.generateRef(),

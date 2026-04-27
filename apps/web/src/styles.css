@@ -33,6 +33,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .page-header { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; }
 .page-header h1 { font-size: 28px; font-weight: 700; }
 .subtitle { color: var(--text-muted); margin-top: 4px; }
+.page-header__controls { display: flex; gap: 12px; align-items: center; }
+.filter-select { height: 38px; padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); font-size: 14px; cursor: pointer; }
 
 /* Bookings grid */
 .bookings-grid { display: grid; gap: 16px; }
@@ -68,6 +70,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .modal { background: var(--surface); border-radius: var(--radius); padding: 28px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); }
 .modal h2 { margin-bottom: 20px; font-size: 20px; }
 
+/* Confirm modal */
+.modal--confirm { max-width: 420px; }
+.modal-confirm__message { color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; }
+
 /* Form */
 .booking-form { display: flex; flex-direction: column; gap: 14px; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -87,6 +93,23 @@ input:focus, select:focus { border-color: var(--primary); }
 .cabin-badge { background: var(--primary); color: #fff; border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
 .price { font-weight: 600; }
 .route-cell { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+
+/* Clickable table row */
+.flights-table__row--clickable { cursor: pointer; }
+
+/* Flight tracker modal */
+.modal--tracker { max-width: 760px; padding: 24px; }
+.tracker-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+.tracker-title { font-size: 20px; font-weight: 700; }
+.tracker-route { color: var(--text-muted); font-size: 14px; margin-top: 4px; }
+.tracker-close { background: none; border: none; cursor: pointer; font-size: 18px; color: var(--text-muted); padding: 4px 8px; border-radius: 4px; line-height: 1; }
+.tracker-close:hover { background: var(--border); color: var(--text); }
+.tracker-status { padding: 7px 12px; border-radius: 6px; font-size: 13px; font-weight: 500; margin-bottom: 14px; }
+.tracker-status--scheduled { background: #f1f5f9; color: var(--text-muted); }
+.tracker-status--inflight { background: #eff6ff; color: var(--primary); border: 1px solid #bfdbfe; }
+.tracker-status--landed { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+.tracker-map-wrapper { height: 380px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); }
+.tracker-footer { display: flex; justify-content: space-between; margin-top: 12px; font-size: 13px; color: var(--text-muted); }
 
 /* States */
 .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 80px; color: var(--text-muted); }

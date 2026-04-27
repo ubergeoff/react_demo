@@ -2,51 +2,78 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
+## What this is
 
-**SkyBook** — a flight booking app built as an NX monorepo with:
-- `apps/web` — React 19 frontend (Vite, React Router v7, Zustand, TanStack Query, Axios)
-- `apps/api` — NestJS backend (TypeORM, Postgres)
-- `libs/models` — shared TypeScript interfaces/enums imported by both apps as `@flight-booking/models`
+A full-stack **flight booking** application built as an NX 22 monorepo. The NestJS API talks to PostgreSQL via TypeORM; the React frontend fetches data with TanStack Query and uses Zustand for local state. A shared `libs/models` library provides TypeScript interfaces consumed by both apps.
 
 ## Commands
 
 ```bash
-# Start everything (Postgres via Docker + API + Web)
-bash start.sh
+# Start everything for development (API + Web concurrently)
+npm start
 
-# Run individual apps
-npm run start:api    # NestJS on :3333
-npm run start:web    # React on :5173
+# Individual dev servers
+npm run start:api     # NestJS on :3333
+npm run start:web     # Vite on :5173
 
-# NX targets
-npx nx run web:test          # Vitest (frontend unit tests)
-npx nx run api-e2e:e2e       # Playwright e2e
-npx nx run web:lint
-npx nx run api:lint
-npx nx run web:build
-npx nx run api:build
+# Build
+nx run api:build
+nx run web:build
+
+# Test
+nx run api:test
+nx run web:test
+
+# Lint
+nx run api:lint
+nx run web:lint
 ```
 
-## Infrastructure
+### Database
 
-Postgres runs in Docker. `start.sh` handles starting the container, waiting for readiness, then launching both servers. DB config via env vars: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` (defaults: `localhost:5432/flight_booking`, user/pass `postgres`). TypeORM `synchronize: true` — schema is auto-managed, no migrations.
+Requires a running PostgreSQL instance. Use Docker Compose:
 
-The API seeds the database on first boot (`SeedService.onApplicationBootstrap`) only when the flights table is empty.
+```bash
+docker compose up -d
+```
+
+Default connection: `postgres:postgres@localhost:5432/flight_booking`. Override with env vars `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`. TypeORM `synchronize: true` is on — schema is kept in sync automatically in dev.
+
+The seed service (`apps/api/src/seed/`) populates initial flight data on startup.
 
 ## Architecture
 
-### Shared models (`libs/models`)
-All domain types (`Flight`, `Booking`, `Passenger`, `CreateBookingDto`, `UpdateBookingDto`, `BookingStatus`, `CabinClass`, `ApiResponse`) live here and are imported by both the API and web with the `@flight-booking/models` path alias. Changes here affect both apps.
+### Monorepo layout
+
+```
+apps/api        NestJS REST API
+apps/api-e2e    Playwright E2E tests for the API
+apps/web        React SPA
+apps/web-e2e    Playwright E2E tests for the web app
+libs/models     Shared TypeScript interfaces (Flight, Booking, Passenger, etc.)
+```
+
+The path alias `@flight-booking/models` resolves to `libs/models/src/index.ts` — use it in both apps instead of relative imports.
 
 ### API (`apps/api`)
-- NestJS modules: `FlightsModule`, `BookingsModule`, `SeedModule`
-- Each module follows the pattern: `*.entity.ts` (TypeORM) → `*.service.ts` → `*.controller.ts`
-- All routes are prefixed `/api`
-- CORS allows `http://localhost:5173` (or `CORS_ORIGIN` env var)
+
+NestJS modules: `AppModule` → `FlightsModule`, `BookingsModule`, `SeedModule`.
+
+- **FlightsModule**: `FlightEntity` (TypeORM), `FlightsService`, `FlightsController`. Endpoints: `GET /api/flights`, `GET /api/flights/:id`.
+- **BookingsModule**: `BookingEntity`, `BookingsService`, `BookingsController`. Endpoints: `GET /api/bookings`, `GET /api/bookings/:id`, `POST /api/bookings`, `PUT /api/bookings/:id`, `DELETE /api/bookings/:id`.
+
+CORS is configured to allow `http://localhost:5173` (the Vite dev server). Global prefix: `/api`.
 
 ### Web (`apps/web`)
-- **State**: Zustand stores (`bookings.store.ts`, `flights.store.ts`) own async operations and call `apps/web/src/lib/api.ts` directly
-- **API client**: single Axios instance in `src/lib/api.ts`, base URL from `VITE_API_URL` env var
-- **Routing**: two pages — `/` (BookingsPage) and `/flights` (FlightsPage)
-- **Styling**: plain CSS in `src/styles.css` (no CSS-in-JS, no Tailwind)
+
+React 19 + React Router 7 SPA. Key patterns:
+
+- **Data fetching**: TanStack Query (`@tanstack/react-query`) via custom hooks in `src/hooks/` (e.g. `useBookings`). Axios is the HTTP client pointing to `http://localhost:3333`.
+- **State**: Zustand for UI/local state.
+- **Pages**: `FlightsPage`, `BookingsPage` in `src/pages/`.
+- **Components**: `BookingCard`, `CreateBookingModal`, `DeleteConfirmModal`, `FlightTrackerModal` in `src/components/`.
+- **Maps**: `react-leaflet` + `leaflet` for flight route visualization.
+
+### Shared models (`libs/models`)
+
+Single source of truth for entity shapes. Both the NestJS DTOs and the React components import from here. When adding fields to a Flight or Booking, update `libs/models/src/lib/models.ts` first.

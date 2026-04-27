@@ -19,10 +19,12 @@ export function CreateBookingModal({ onSave, onCancel }: Props) {
   const [seatNumber, setSeatNumber] = useState('');
   const [cabinClass, setCabinClass] = useState<CabinClass>(CabinClass.ECONOMY);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
+    setError(null);
     try {
       await onSave({
         flightId,
@@ -30,6 +32,11 @@ export function CreateBookingModal({ onSave, onCancel }: Props) {
         seatNumber,
         cabinClass,
       });
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        'Failed to create booking. Please try again.';
+      setError(message);
     } finally {
       setSaving(false);
     }
@@ -45,11 +52,14 @@ export function CreateBookingModal({ onSave, onCancel }: Props) {
               Flight
               <select value={flightId} onChange={(e) => setFlightId(e.target.value)} required>
                 <option value="">— Select a flight —</option>
-                {flights.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.flightNumber} · {f.origin} → {f.destination} ({f.airline})
-                  </option>
-                ))}
+                {flights.map((f) => {
+                  const full = (f.bookingCount ?? 0) >= f.availableSeats;
+                  return (
+                    <option key={f.id} value={f.id} disabled={full}>
+                      {f.flightNumber} · {f.origin} → {f.destination} ({f.airline}){full ? ' — Full' : ''}
+                    </option>
+                  );
+                })}
               </select>
             </label>
           </div>
@@ -89,6 +99,7 @@ export function CreateBookingModal({ onSave, onCancel }: Props) {
               </select>
             </label>
           </div>
+          {error && <div className="error-banner">{error}</div>}
           <div className="form-actions">
             <button type="button" className="btn btn--secondary" onClick={onCancel}>
               Cancel

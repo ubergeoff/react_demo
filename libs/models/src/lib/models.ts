@@ -21,6 +21,7 @@ export interface Flight {
   price: number;
   cabinClass: CabinClass;
   availableSeats: number;
+  bookingCount?: number;
 }
 
 export interface Passenger {

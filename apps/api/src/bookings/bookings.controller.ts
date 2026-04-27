@@ -11,7 +11,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
-import { Booking, CreateBookingDto, UpdateBookingDto } from '@flight-booking/models';
+import {
+  Booking,
+  CreateBookingDto,
+  UpdateBookingDto,
+} from '@flight-booking/models';
 
 @Controller('bookings')
 export class BookingsController {
@@ -37,7 +41,7 @@ export class BookingsController {
   @Put(':id')
   async update(
     @Param('id') id: string,
-    @Body() dto: UpdateBookingDto
+    @Body() dto: UpdateBookingDto,
   ): Promise<Booking> {
     return this.bookingsService.update(id, dto);
   }

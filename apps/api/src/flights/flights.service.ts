@@ -12,7 +12,10 @@ export class FlightsService {
   ) {}
 
   async findAll(): Promise<Flight[]> {
-    const entities = await this.flightRepo.find();
+    const entities = await this.flightRepo
+      .createQueryBuilder('flight')
+      .loadRelationCountAndMap('flight.bookingCount', 'flight.bookings')
+      .getMany();
     return entities.map(this.toModel);
   }
 
@@ -33,6 +36,7 @@ export class FlightsService {
       price: Number(e.price),
       cabinClass: e.cabinClass,
       availableSeats: e.availableSeats,
+      bookingCount: e.bookingCount ?? 0,
     };
   }
 }

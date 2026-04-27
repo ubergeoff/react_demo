@@ -1,7 +1,11 @@
+import { useState } from 'react';
 import { useFlights } from '../hooks/useFlights';
+import { FlightTrackerModal } from '../components/FlightTrackerModal';
+import type { Flight } from '@flight-booking/models';
 
 export function FlightsPage() {
   const { data: flights = [], isPending, error } = useFlights();
+  const [trackedFlight, setTrackedFlight] = useState<Flight | null>(null);
 
   const fmt = (iso: string) =>
     new Date(iso).toLocaleString('en-ZA', { dateStyle: 'medium', timeStyle: 'short' });
@@ -18,8 +22,10 @@ export function FlightsPage() {
   return (
     <div className="page">
       <div className="page-header">
-        <h1>Available Flights</h1>
-        <p className="subtitle">{flights.length} flights</p>
+        <div>
+          <h1>Available Flights</h1>
+          <p className="subtitle">{flights.length} flights — click a row to track</p>
+        </div>
       </div>
 
       {error && <div className="error-banner">Failed to load flights</div>}
@@ -36,11 +42,12 @@ export function FlightsPage() {
               <th>Class</th>
               <th>Price (ZAR)</th>
               <th>Seats</th>
+              <th>Bookings</th>
             </tr>
           </thead>
           <tbody>
             {flights.map((f) => (
-              <tr key={f.id}>
+              <tr key={f.id} onClick={() => setTrackedFlight(f)} className="flights-table__row--clickable">
                 <td className="flight-number">{f.flightNumber}</td>
                 <td>{f.airline}</td>
                 <td>
@@ -55,11 +62,16 @@ export function FlightsPage() {
                 </td>
                 <td className="price">R {Number(f.price).toLocaleString('en-ZA', { minimumFractionDigits: 2 })}</td>
                 <td>{f.availableSeats}</td>
+                <td>{f.bookingCount ?? 0}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {trackedFlight && (
+        <FlightTrackerModal flight={trackedFlight} onClose={() => setTrackedFlight(null)} />
+      )}
     </div>
   );
 }

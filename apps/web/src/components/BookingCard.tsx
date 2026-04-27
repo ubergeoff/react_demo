@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import type { Booking } from '@flight-booking/models';
 import { StatusBadge } from './StatusBadge';
+import { DeleteConfirmModal } from './DeleteConfirmModal';
 
 interface Props {
   booking: Booking;
@@ -8,6 +10,7 @@ interface Props {
 }
 
 export function BookingCard({ booking, onEdit, onDelete }: Props) {
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const flight = booking.flight;
 
   const fmt = (iso: string) =>
@@ -29,11 +32,7 @@ export function BookingCard({ booking, onEdit, onDelete }: Props) {
           </button>
           <button
             className="btn btn--danger"
-            onClick={() => {
-              if (confirm(`Delete booking ${booking.bookingReference}?`)) {
-                onDelete(booking.id);
-              }
-            }}
+            onClick={() => setShowDeleteModal(true)}
           >
             Delete
           </button>
@@ -72,6 +71,17 @@ export function BookingCard({ booking, onEdit, onDelete }: Props) {
           </span>
         </div>
       </div>
+
+      {showDeleteModal && (
+        <DeleteConfirmModal
+          bookingReference={booking.bookingReference}
+          onConfirm={() => {
+            setShowDeleteModal(false);
+            onDelete(booking.id);
+          }}
+          onCancel={() => setShowDeleteModal(false)}
+        />
+      )}
     </div>
   );
 }

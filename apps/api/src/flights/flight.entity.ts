@@ -36,4 +36,6 @@ export class FlightEntity {
 
   @OneToMany(() => BookingEntity, (booking) => booking.flight)
   bookings: BookingEntity[];
+
+  bookingCount?: number;
 }
