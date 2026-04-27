@@ -19,8 +19,10 @@ export class BookingsService {
     private readonly flightRepo: Repository<FlightEntity>
   ) {}
 
-  async findAll(): Promise<Booking[]> {
-    const entities = await this.bookingRepo.find();
+  async findAll(flightId?: string): Promise<Booking[]> {
+    const entities = await this.bookingRepo.find(
+      flightId ? { where: { flightId } } : undefined,
+    );
     return entities.map(this.toModel);
   }
 

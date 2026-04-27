@@ -12,6 +12,14 @@ export function useBookings() {
   });
 }
 
+export function useBookingsByFlight(flightId: string) {
+  return useQuery({
+    queryKey: ['bookings', { flightId }],
+    queryFn: () => bookingsApi.getByFlight(flightId),
+    enabled: !!flightId,
+  });
+}
+
 export function useCreateBooking() {
   const queryClient = useQueryClient();
   return useMutation({

@@ -12,6 +12,8 @@ export const flightsApi = {
 
 export const bookingsApi = {
   getAll: () => client.get<Booking[]>('/bookings').then((r) => r.data),
+  getByFlight: (flightId: string) =>
+    client.get<Booking[]>('/bookings', { params: { flightId } }).then((r) => r.data),
   getOne: (id: string) => client.get<Booking>(`/bookings/${id}`).then((r) => r.data),
   create: (dto: CreateBookingDto) =>
     client.post<Booking>('/bookings', dto).then((r) => r.data),

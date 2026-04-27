@@ -6,6 +6,7 @@ import {
   Delete,
   Param,
   Body,
+  Query,
   HttpCode,
   HttpStatus,
   NotFoundException,
@@ -22,8 +23,8 @@ export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
   @Get()
-  async findAll(): Promise<Booking[]> {
-    return this.bookingsService.findAll();
+  async findAll(@Query('flightId') flightId?: string): Promise<Booking[]> {
+    return this.bookingsService.findAll(flightId);
   }
 
   @Get(':id')
